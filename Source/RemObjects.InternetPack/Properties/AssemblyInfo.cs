@@ -15,12 +15,12 @@ using System.Resources;
 [assembly: AssemblyCopyright("Copyright RemObjects Software, LLC 2003-2016. All Rights Reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyVersion("2.0.*")]
 
 [assembly: NeutralResourcesLanguage("")]
 [assembly: CLSCompliant(true)]
 
 #if REMOBJECTS_SIGN_ASSEMBLY && !COMPACTFRAMEWORK
-[assembly: AssemblyKeyName("RemObjectsSoftware")]
-[assembly: System.Security.AllowPartiallyTrustedCallers()]
+//[assembly: AssemblyKeyName("RemObjectsSoftware")]
+//[assembly: System.Security.AllowPartiallyTrustedCallers()]
 #endif
