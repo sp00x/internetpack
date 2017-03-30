@@ -431,6 +431,40 @@ namespace RemObjects.InternetPack.Ftp
 				this.List();
 		}
 
+        public string ModificationTime(string aFilename)
+        {
+            // most cases do YYYYMMDDhhmmss but I'm not sure if that's a standard or not.
+            if (SendAndWaitForResponse("MDTM " + aFilename, 213))
+                return LastResponseText;
+            else
+                throw new CmdResponseException("Error getting modification time of file", LastResponseNo, LastResponseText);
+        }
+
+        public long Size(string aFilename)
+        {
+            long size;
+            if (SendAndWaitForResponse("SIZE " + aFilename, 213) && long.TryParse(LastResponseText, out size))
+                return size;
+            else
+                throw new CmdResponseException("Error getting size of file", LastResponseNo, LastResponseText);
+        }
+
+        public string Stat(string aFilename = null)
+        {
+            // This can be random weird text
+            // https://www.w3.org/Protocols/rfc959/4_FileTransfer.html
+            if (SendAndWaitForResponse(String.IsNullOrEmpty(aFilename) ? "STAT" : "STAT " + aFilename, 200, 213))
+                return LastResponseText;
+            else
+                throw new CmdResponseException("Error running stat on file", LastResponseNo, LastResponseText);
+        }
+
+        public string Raw(string aCommand)
+        {
+            SendAndWaitForResponse(aCommand);
+            return LastResponseNo + " " + LastResponseText;
+        }
+
 		#region Events
 		public event TransferStartEventHandler OnTransferStart;
 
