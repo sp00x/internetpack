@@ -46,6 +46,8 @@ namespace RemObjects.InternetPack.Ftp
 
 		public Boolean ShowHiddenFiles { get; set; }
 
+        public IPAddress ActiveModeExternalAddress { get; set; }
+
 		public Encoding Encoding
 		{
 			get
@@ -269,13 +271,15 @@ namespace RemObjects.InternetPack.Ftp
 				this.fDataServer.Open();
 			}
 
-			Byte[] lAddress;
+            IPAddress lPortAddress = (ActiveModeExternalAddress == null)
+                ? ((IPEndPoint)this.fDataServer.Binding.ListeningSocket.LocalEndPoint).Address
+                : ActiveModeExternalAddress;
+            Byte[] lAddress;
 #if FULLFRAMEWORK
-			lAddress = ((IPEndPoint)this.fDataServer.Binding.ListeningSocket.LocalEndPoint).Address.GetAddressBytes();
+            lAddress = lPortAddress.GetAddressBytes();
 #endif
 #if COMPACTFRAMEWORK
-            IPAddress lIPAddress = ((IPEndPoint)this.fDataServer.Binding.ListeningSocket.LocalEndPoint).Address;
-            String[] lIPAddressstr = lIPAddress.ToString().Split(new Char[] {'.'});
+            String[] lIPAddressstr = lPortAddress.ToString().Split(new Char[] {'.'});
             lAddress = new Byte[lIPAddressstr.Length];
             for (Int32 i = 0; i < lIPAddressstr.Length; i++)
                 lAddress[i] = Byte.Parse(lIPAddressstr[i]);
