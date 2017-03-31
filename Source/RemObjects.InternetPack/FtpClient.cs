@@ -64,7 +64,7 @@ namespace RemObjects.InternetPack.Ftp
                 HostName = value.Host;
 
                 // convert to UriBuilder to access username & password
-                UriBuilder ub = new UriBuilder(u);
+                UriBuilder ub = new UriBuilder(value);
                 if (ub.UserName != null) UserName = ub.UserName;
                 if (ub.Password != null) Password = ub.Password;
 
