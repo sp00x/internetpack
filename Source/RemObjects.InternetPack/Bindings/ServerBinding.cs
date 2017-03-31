@@ -120,4 +120,56 @@ namespace RemObjects.InternetPack
 			return new Connection(this.fListeningSocket.Accept());
 		}
 	}
+
+    public class PortRangeServerBinding : ServerBinding
+    {
+        public int PortRangeStart { get; set; }
+        public int PortRangeEnd { get; set; }
+
+        public PortRangeServerBinding(int firstPort, int lastPort)
+        {
+            PortRangeStart = firstPort;
+            PortRangeEnd = lastPort;
+        }
+
+        public override void Bind(IListener listener)
+        {
+            throw new NotSupportedException("Threaded binding not supported with port range");
+        }
+
+        public override void BindUnthreaded()
+        {
+            int numPorts = PortRangeEnd - PortRangeStart + 1;
+
+            // select first port if no port, or current port is out of the valid range
+            int currentPort = (this.Port == 0)
+                ? PortRangeStart
+                : Math.Min(PortRangeEnd, Math.Max(PortRangeStart, PortRangeStart + ((this.Port + 1 - PortRangeStart) % numPorts)));
+
+            // try the entire range, starting at the current port (if given)
+            for (int i = 0; numPorts > i; i++)
+            {
+                try
+                {
+                    //this.ReuseAddress = false; // = true -> in theory this should avoid having to wait for TIME_WAIT sockets to finish, but it doesn't ?
+                    //this.ExclusiveAddressUse = true; // avoid TIME_WAIT ? -> no
+                    this.Port = ((currentPort - PortRangeStart + i) % numPorts) + PortRangeStart;
+                    base.BindUnthreaded();
+                    return;
+                }
+                catch (SocketException)
+                {
+                    //// possible error codes to limit this to:
+                    //switch (se.ErrorCode)
+                    //{
+                    //    case 10013: // WSAEACCES
+                    //    case 10048: // WSAEADDRINUSE
+                    //        // TODO
+                    //        break;
+                    //}
+                }
+            }
+            throw new SocketException(10048); // fake it           
+        }
+    }
 }

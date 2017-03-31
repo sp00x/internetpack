@@ -23,16 +23,16 @@ namespace RemObjects.InternetPack
 				return this.fBinding;
 			}
 		}
-		private readonly ServerBinding fBinding;
+		protected ServerBinding fBinding;
 		#endregion
 
-		public void Open()
+        public virtual void Open()
 		{
 			this.Binding.BindUnthreaded();
 			this.Binding.ListeningSocket.Listen(this.Binding.MaxWaitConnections);
 		}
 
-		public void Close()
+		public virtual void Close()
 		{
 			this.Binding.Unbind();
 		}
@@ -42,4 +42,28 @@ namespace RemObjects.InternetPack
 			return this.Binding.Accept();
 		}
 	}
+
+    public class PortRangeSimpleServer : SimpleServer
+    {
+        public int PortRangeStart { get; protected set; }
+        public int PortRangeEnd { get; protected set; }
+        public int CurrentPort { get; protected set; }
+
+        public PortRangeSimpleServer(int firstPort, int lastPort, int currentPort = 0)
+        {
+            this.PortRangeStart = firstPort;
+            this.PortRangeStart = lastPort;
+            this.CurrentPort = currentPort;
+            this.fBinding = new PortRangeServerBinding(firstPort, lastPort);
+            this.fBinding.Address = IPAddress.Any;
+        }
+
+        public override void Open()
+        {
+            this.Binding.Port = CurrentPort;
+            this.Binding.BindUnthreaded();
+            CurrentPort = this.Binding.Port;
+            this.Binding.ListeningSocket.Listen(this.Binding.MaxWaitConnections);
+        }
+    }
 }

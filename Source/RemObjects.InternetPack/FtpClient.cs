@@ -74,6 +74,21 @@ namespace RemObjects.InternetPack.Ftp
         
         public IPAddress ActiveModeExternalAddress { get; set; }
 
+        public class PortRange
+        {
+            public int Start { get; set; }
+            public int End { get; set; }
+            public PortRange(int start, int end)
+            {
+                Start = start;
+                End = end;
+            }
+        }
+
+        public PortRange ActiveModePortRange { get; set; }
+
+        public int ActiveModeCurrentPort { get; set; }
+
 		public Encoding Encoding
 		{
 			get
@@ -292,9 +307,20 @@ namespace RemObjects.InternetPack.Ftp
 
 			if (this.fDataServer == null)
 			{
-				this.fDataServer = new SimpleServer();
-				this.fDataServer.Binding.Address = ((IPEndPoint)CurrentConnection.LocalEndPoint).Address;
-				this.fDataServer.Open();
+                if (ActiveModePortRange != null)
+                {
+                    var p = new PortRangeSimpleServer(ActiveModePortRange.Start, ActiveModePortRange.End, ActiveModeCurrentPort);
+                    this.fDataServer = p;
+                    this.fDataServer.Binding.Address = ((IPEndPoint)CurrentConnection.LocalEndPoint).Address;
+                    this.fDataServer.Open();
+                    ActiveModeCurrentPort = p.CurrentPort;
+                }
+                else
+                {
+                    this.fDataServer = new SimpleServer();
+                    this.fDataServer.Binding.Address = ((IPEndPoint)CurrentConnection.LocalEndPoint).Address;
+                    this.fDataServer.Open();
+                }
 			}
 
             IPAddress lPortAddress = ActiveModeExternalAddress ?? ((IPEndPoint)this.fDataServer.Binding.ListeningSocket.LocalEndPoint).Address;
@@ -303,13 +329,13 @@ namespace RemObjects.InternetPack.Ftp
             lAddress = lPortAddress.GetAddressBytes();
 #endif
 #if COMPACTFRAMEWORK
-            String[] lIPAddressstr = lPortAddress.ToString().Split(new Char[] {'.'});
-            lAddress = new Byte[lIPAddressstr.Length];
-            for (Int32 i = 0; i < lIPAddressstr.Length; i++)
-                lAddress[i] = Byte.Parse(lIPAddressstr[i]);
+			String[] lIPAddressstr = lPortAddress.ToString().Split(new Char[] {'.'});
+			lAddress = new Byte[lIPAddressstr.Length];
+			for (Int32 i = 0; i < lIPAddressstr.Length; i++)
+				lAddress[i] = Byte.Parse(lIPAddressstr[i]);
 #endif
 
-			Int32 lPort = ((IPEndPoint)this.fDataServer.Binding.ListeningSocket.LocalEndPoint).Port;
+            Int32 lPort = ((IPEndPoint)this.fDataServer.Binding.ListeningSocket.LocalEndPoint).Port;
 			String lPortCommand = String.Format("PORT {0},{1},{2},{3},{4},{5}", lAddress[0], lAddress[1], lAddress[2], lAddress[3], unchecked((Byte)(lPort >> 8)), unchecked((Byte)lPort));
 			if (!SendAndWaitForResponse(lPortCommand, 200))
 				throw new CmdResponseException("Error in PORT command", LastResponseNo, LastResponseText);
@@ -520,5 +546,6 @@ namespace RemObjects.InternetPack.Ftp
 				this.OnNewListing(this, new EventArgs());
 		}
 		#endregion
-	}
+       
+    }
 }
