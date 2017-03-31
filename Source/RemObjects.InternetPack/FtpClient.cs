@@ -297,9 +297,7 @@ namespace RemObjects.InternetPack.Ftp
 				this.fDataServer.Open();
 			}
 
-            IPAddress lPortAddress = (ActiveModeExternalAddress == null)
-                ? ((IPEndPoint)this.fDataServer.Binding.ListeningSocket.LocalEndPoint).Address
-                : ActiveModeExternalAddress;
+            IPAddress lPortAddress = ActiveModeExternalAddress ?? ((IPEndPoint)this.fDataServer.Binding.ListeningSocket.LocalEndPoint).Address;
             Byte[] lAddress;
 #if FULLFRAMEWORK
             lAddress = lPortAddress.GetAddressBytes();
