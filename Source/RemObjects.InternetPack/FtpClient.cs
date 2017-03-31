@@ -46,6 +46,32 @@ namespace RemObjects.InternetPack.Ftp
 
 		public Boolean ShowHiddenFiles { get; set; }
 
+        public Uri Url
+        {
+            get
+            {
+                UriBuilder ub = new UriBuilder();
+                ub.Scheme = "ftp";
+                ub.Host = String.IsNullOrEmpty(HostName) ? HostAddress.ToString() : HostName;
+                if (Port != 21) ub.Port = Port;
+                if (!string.IsNullOrEmpty(UserName)) ub.UserName = UserName;
+                if (!string.IsNullOrEmpty(Password)) ub.Password = Password;
+                return ub.Uri;
+            }
+            set
+            {
+                Port = value.IsDefaultPort ? 21 : value.Port;
+                HostName = value.Host;
+
+                // convert to UriBuilder to access username & password
+                UriBuilder ub = new UriBuilder(u);
+                if (ub.UserName != null) UserName = ub.UserName;
+                if (ub.Password != null) Password = ub.Password;
+
+                // ignored: path
+            }
+        }
+        
         public IPAddress ActiveModeExternalAddress { get; set; }
 
 		public Encoding Encoding
